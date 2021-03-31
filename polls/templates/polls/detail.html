@@ -1,9 +1,12 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 
 <head>
     <meta charset="utf-8">
     <title>Polls: {{question.question_text}}</title>
+
+    <script src="{% static 'polls/bundle.js' %}"></script>
 </head>
 
 <body>
@@ -11,7 +14,7 @@
 
     {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-    <form action="{% url 'polls:vote' question.id %}" method="post">
+    <form action="{% url 'polls:vote' question.id %}" method="post" onsubmit="return vote(event)">
         {% csrf_token %}
         {% for choice in question.choice_set.all %}
         <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">

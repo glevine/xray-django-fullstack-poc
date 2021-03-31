@@ -1,0 +1,21 @@
+{
+    "name": "xray-django-fullstack-poc",
+    "version": "1.0.0",
+    "description": "",
+    "main": "assets/index.js",
+    "dependencies": {
+        "@aws-sdk/client-xray": "^3.10.0",
+        "jquery": "^3.6.0"
+    },
+    "devDependencies": {
+        "webpack": "^5.28.0",
+        "webpack-cli": "^4.5.0"
+    },
+    "scripts": {
+        "build": "webpack --mode development",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+}
