@@ -1,3 +1,4 @@
+from aws_xray_sdk.core import xray_recorder
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -32,10 +33,16 @@ class ResultsView(generic.DetailView):
 
 
 def vote(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
+    choice_id = request.POST['choice']
+
+    with xray_recorder.capture('load_question') as subsegment:
+        subsegment.put_annotation('pk', question_id)
+        question = get_object_or_404(Question, pk=question_id)
 
     try:
-        selected_choice = question.choice_set.get(pk=request.POST['choice'])
+        with xray_recorder.capture('load_choice') as subsegment:
+            subsegment.put_annotation('pk', choice_id)
+            selected_choice = question.choice_set.get(pk=choice_id)
     except (KeyError, Choice.DoesNotExist):
         # Redisplay the question voting form.
         return render(request, 'polls/detail.html', {
@@ -43,8 +50,24 @@ def vote(request, question_id):
             'error_message': "You didn't select a choice.",
         })
     else:
-        selected_choice.votes += 1
-        selected_choice.save()
+        with xray_recorder.capture('record_vote') as subsegment:
+            subsegment.put_annotation('vote', choice_id)
+            selected_choice.votes += 1
+            subsegment.put_metadata('votes', selected_choice.votes, 'polls')
+            selected_choice.save()
+
+        segment = xray_recorder.current_segment()
+        segment.put_metadata('question', question.question_text, 'polls')
+        segment.put_metadata(
+            'selected_choice',
+            selected_choice.choice_text,
+            'polls'
+        )
+        segment.put_metadata(
+            'selected_choice_votes',
+            selected_choice.votes,
+            'polls'
+        )
 
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a

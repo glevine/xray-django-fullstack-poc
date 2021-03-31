@@ -1,0 +1,12 @@
+version: "3"
+services:
+
+  xray-daemon:
+    image: amazon/aws-xray-daemon
+    command: ["-o", "--log-level=debug"]
+    volumes:
+      - ${HOME}/.aws/:/root/.aws/:ro
+    ports:
+      - "2000:2000/udp"
+    environment:
+      - AWS_REGION=us-west-2
