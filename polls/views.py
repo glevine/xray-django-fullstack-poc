@@ -36,12 +36,12 @@ def vote(request, question_id):
     choice_id = request.POST['choice']
 
     with xray_recorder.capture('load_question') as subsegment:
-        subsegment.put_annotation('pk', question_id)
+        subsegment.put_annotation('question_id', question_id)
         question = get_object_or_404(Question, pk=question_id)
 
     try:
         with xray_recorder.capture('load_choice') as subsegment:
-            subsegment.put_annotation('pk', choice_id)
+            subsegment.put_annotation('choice_id', choice_id)
             selected_choice = question.choice_set.get(pk=choice_id)
     except (KeyError, Choice.DoesNotExist):
         # Redisplay the question voting form.
@@ -51,7 +51,7 @@ def vote(request, question_id):
         })
     else:
         with xray_recorder.capture('record_vote') as subsegment:
-            subsegment.put_annotation('vote', choice_id)
+            subsegment.put_annotation('choice_id', choice_id)
             selected_choice.votes += 1
             subsegment.put_metadata('votes', selected_choice.votes, 'polls')
             selected_choice.save()
